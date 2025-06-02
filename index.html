@@ -12,12 +12,12 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     rel="stylesheet"
   />
-
-  <!-- Highcharts -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
     <!-- Highcharts Map & Exporting -->
+     <script src="https://code.highcharts.com/maps/modules/topojson.js"></script>
     <script src="https://code.highcharts.com/maps/highmaps.js"></script>
     <script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
+    <!-- Highcharts -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 
 
     <!-- Chart.js -->
@@ -28,39 +28,64 @@
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
   <style>
-    body {
-      background-color: #f4f6f9;
-    }
-    .sidebar {
-      height: 100vh;
-      background-color: #111;
-      color: white;
-      max-width: 250px;
-      padding-top: 1rem;
-    }
-    .sidebar a {
-      color: white;
-      display: block;
-      padding: 0.75rem 1rem;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      background-color: #333;
-    }
-    .kpi-card {
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .content-area {
-      margin-left: 250px;
-      padding: 2rem;
-    }
-    .navbar {
-      margin-left: 250px;
-    }
+   body {
+  background-color: #f4f6f9;
+}
+
+.sidebar {
+  height: 100vh;
+  background-color: #111;
+  color: white;
+  max-width: 250px;
+  padding-top: 1rem;
+}
+.sidebar a {
+  color: white;
+  display: block;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+.sidebar a:hover {
+  background-color: #333;
+}
+
+.kpi-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content-area {
+  margin-left: 250px;
+  padding: 2rem;
+}
+
+.navbar {
+  margin-left: 250px;
+}
+
+    /* CHART & MAP STYLING UNIFORMITY */
     .chart-container {
-      margin-bottom: 2rem;
+    margin-bottom: 2rem;
+}
+
+    .chart-container .card {
+        height: 700px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
+    #driversMap,
+    #heatmap {
+        width: 100%;
+        min-height: 90%;
+    }
+
+    
   </style>
 </head>
 <body>
@@ -135,22 +160,22 @@
     <div class="row">
       <div class="col-lg-6 chart-container">
         <div class="card p-3">
-          <h5>Revenue Over Time</h5>
-          <div id="revenueChart"></div>
+            <h5>Revenue Over Time</h5>
+             <div id="revenueChart" style="height: 600px; min-width: 100%; margin: 0 auto;"></div>          
         </div>
       </div>
       <div class="col-lg-6 chart-container">
         <div class="card p-3">
-          <h5>Drivers Per City</h5>
-          <div id="driversChart"></div>
+            <h5>Drivers Per City</h5>
+            <div id="driversMap" style="height: 500px; min-width: 310px; max-width: 800px; margin: 0 auto;"></div>
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-lg-6 chart-container">
-        <div class="card p-3">
-          <h5>Rating Breakdown</h5>
-          <canvas id="ratingChart"></canvas>
+        <div class="card p-3" style=" padding: 20px;">
+            <h5>Rating Breakdown</h5>
+          <canvas id="ratingChart" style="height: 600px; max-width: 600px; margin: 0 auto;"></canvas>
         </div>
       </div>
       <div class="col-lg-6 chart-container">
@@ -214,24 +239,56 @@
         }]
     });
 
-    Highcharts.chart('driversChart', {
-        chart: { type: 'column' },
-        title: { text: '' },
-        xAxis: {
-            categories: ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa'],
-            title: { text: 'Cities' }
+    (async () => {
+    const topology = await fetch(
+        'https://code.highcharts.com/mapdata/countries/et/et-all.geo.json'
+    ).then(response => response.json());
+
+    const data = [
+        ['et-be', 520], ['et-2837', 140], ['et-ha', 900], ['et-sn', 110],
+        ['et-ga', 400], ['et-aa', 5200], ['et-so', 300], ['et-dd', 290],
+        ['et-ti', 210], ['et-af', 350], ['et-am', 700]
+    ];
+
+    Highcharts.mapChart('driversMap', {
+        chart: { map: topology },
+
+        title: { text: 'Drivers Per Region in Ethiopia' },
+
+        subtitle: {
+        text: 'Source: Internal Uber Admin Data'
         },
-        yAxis: {
-            min: 0,
-            title: { text: 'Number of Drivers' }
+
+        mapNavigation: {
+        enabled: true,
+        buttonOptions: { verticalAlign: 'bottom' }
         },
+
+        colorAxis: {
+        min: 0,
+        stops: [
+            [0, '#f0f9e8'],
+            [0.5, '#7bccc4'],
+            [1, '#084081']
+        ]
+        },
+
         series: [{
-            name: 'Drivers',
-            data: [5200, 1400, 900, 1100]
+        data: data,
+        name: 'Number of Drivers',
+        states: {
+            hover: { color: '#BADA55' }
+        },
+        dataLabels: {
+            enabled: true,
+            format: '{point.name}'
+        }
         }]
     });
+    })();
 
-    const ctx = document.getElementById('ratingChart').getContext('2d');
+
+    const ctx = document.getElementById('ratingChart');
     new Chart(ctx, {
         type: 'pie',
         data: {
