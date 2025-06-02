@@ -210,6 +210,22 @@
         }]
     });
 
+    Highcharts.chart('driversChart', {
+        chart: { type: 'column' },
+        title: { text: '' },
+        xAxis: {
+            categories: ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa'],
+            title: { text: 'Cities' }
+        },
+        yAxis: {
+            min: 0,
+            title: { text: 'Number of Drivers' }
+        },
+        series: [{
+            name: 'Drivers',
+            data: [5200, 1400, 900, 1100]
+        }]
+    });
 
 </script>
 
